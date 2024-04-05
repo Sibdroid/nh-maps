@@ -41,12 +41,19 @@ def xlsx_to_data(path: str) -> pd.DataFrame:
     return df
 
 
+def unite_data(files: list[str]) -> pd.DataFrame:
+    data = [xlsx_to_data(file) for file in files
+            if file.endswith(".xlsx")]
+    data = pd.concat(data, axis=0)
+    data = data.drop("TOTALS")
+    data.loc["TOTALS"] = data.sum()
+    return data
+
+
 def main() -> None:
     files = [f for f in os.listdir(".") if os.path.isfile(f)]
-    for file in files:
-        if file.endswith(".xlsx"):
-            data = xlsx_to_data(file)
-            print(data.columns.tolist())
+    data = unite_data(files)
+    data.to_excel("full.xlsx")
 
 
 if __name__ == "__main__":
