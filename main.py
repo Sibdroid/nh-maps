@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import os
 
 
 def remove_nans(values: list) -> list:
@@ -11,6 +12,8 @@ def xlsx_to_data(path: str) -> pd.DataFrame:
     candidates = []
     for column in df.columns:
         column_data = df[column].tolist()
+        if pd.isna(column_data[-1]):
+            column_data = column_data[:-1]
         if np.nan not in column_data:
             if "TOTALS" in column_data:
                 column_data.insert(column_data.index("TOTALS")+1, np.nan)
@@ -32,18 +35,29 @@ def xlsx_to_data(path: str) -> pd.DataFrame:
     df = pd.DataFrame(candidates, columns=municipalities)
     df = df.set_index(df.columns[0])
     df.index.names = ["Candidate"]
+    df = df.apply(lambda x: pd.to_numeric(x, errors='coerce')).dropna()
+    df = df.map(lambda x: int(x))
+    df = df.T
     return df
 
 
-print(xlsx_to_data("2024-pp-republican-sullivan_1.xlsx").to_string())
+def main() -> None:
+    files = [f for f in os.listdir(".") if os.path.isfile(f)]
+    for file in files:
+        if file.endswith(".xlsx"):
+            data = xlsx_to_data(file)
+            print(data.columns.tolist())
 
+
+if __name__ == "__main__":
+    main()
 # belknap - made for this
 # carroll - works kind of
 # cheshire - works kind of
 # coos - works kind of
 # grafton - works kind of
-# hillsborough - fails for weird reason, idk
-# merrimack - fails for weird reason, idk
-# rockingham - fails for weird reason, idk
-# strafford - fails for weird reason, idk
+# hillsborough - works
+# merrimack - works
+# rockingham - works
+# strafford - works
 # sullivan - works kind of
